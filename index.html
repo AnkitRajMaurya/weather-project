@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App - Ankit Raj Maurya</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🌤️</div>
+                <span>NGIJIH</span>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tooltip="Dashboard">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button class="nav-btn" data-tooltip="Notifications">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <button class="nav-btn" data-tooltip="Locations">
+                    <i class="fas fa-map-marker-alt"></i>
+                </button>
+                <button class="nav-btn" data-tooltip="History">
+                    <i class="fas fa-clipboard-list"></i>
+                </button>
+                <button class="nav-btn settings" data-tooltip="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </nav>
+            <div class="developer-credit">
+                <small>Developed by</small>
+                <strong>Ankit Raj</strong>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="greeting">
+                    <h1>Hello,</h1>
+                    <h2 id="userName">Ankit Raj Maurya</h2>
+                    <p class="subtitle">Full Stack Developer</p>
+                </div>
+                
+                <!-- Search Bar with Autocomplete -->
+                <div class="search-container">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Search city..."
+                            autocomplete="off"
+                        >
+                        <button class="search-btn" id="searchBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                        <button class="location-btn" id="locationBtn" data-tooltip="Use my location">
+                            <i class="fas fa-location-crosshairs"></i>
+                        </button>
+                    </div>
+                    <!-- Autocomplete Dropdown -->
+                    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+                </div>
+
+                <div class="location-info">
+                    <div class="weather-icon" id="headerWeatherIcon">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div class="location-details">
+                        <span class="day" id="currentDay">Loading...</span>
+                        <span class="location" id="currentLocation">
+                            <i class="fas fa-map-marker-alt"></i> Detecting location...
+                        </span>
+                    </div>
+                    <div class="temperature" id="headerTemp">--°C</div>
+                </div>
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+            </header>
+
+            <!-- Dashboard Cards -->
+            <section class="dashboard-cards">
+                <!-- Weather Card -->
+                <div class="card weather-card">
+                    <div class="card-header">
+                        <span class="card-icon">
+                            <i class="fas fa-cloud-sun"></i>
+                        </span>
+                        <div>
+                            <h3>Weather</h3>
+                            <p>What's the weather.</p>
+                        </div>
+                        <button class="refresh-btn" id="refreshWeather" data-tooltip="Refresh">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="weather-display">
+                        <div class="main-temp-container">
+                            <div class="main-temp" id="mainTemp">--°C</div>
+                            <div class="temp-range">
+                                <span>Feels like: </span>
+                                <span id="feelsLike">--°</span>
+                            </div>
+                        </div>
+                        <div class="weather-illustration" id="weatherAnimation">
+                            <i class="fas fa-sun sun-icon"></i>
+                            <i class="fas fa-cloud cloud-icon"></i>
+                        </div>
+                    </div>
+                    <p class="weather-desc" id="weatherDesc">Loading weather data...</p>
+                    <div class="weather-metrics">
+                        <div class="metric">
+                            <i class="fas fa-compress-alt"></i>
+                            <span>Pressure</span>
+                            <strong id="pressure">--mb</strong>
+                        </div>
+                        <div class="metric visibility">
+                            <i class="fas fa-eye"></i>
+                            <span>Visibility</span>
+                            <strong id="visibility">-- km</strong>
+                        </div>
+                        <div class="metric">
+                            <i class="fas fa-tint"></i>
+                            <span>Humidity</span>
+                            <strong id="humidity">--%</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Air Quality Card -->
+                <div class="card air-quality-card">
+                    <div class="card-header">
+                        <span class="card-icon">
+                            <i class="fas fa-wind"></i>
+                        </span>
+                        <div>
+                            <h3>Air Quality</h3>
+                            <p id="airPollutant">Main pollutant: PM 2.5</p>
+                        </div>
+                    </div>
+                    <div class="aqi-display">
+                        <div class="aqi-value-container">
+                            <div class="aqi-value" id="aqiValue">--</div>
+                            <span class="aqi-badge" id="aqiBadge">AQI</span>
+                        </div>
+                        <div class="wind-animation">
+                            <i class="fas fa-wind"></i>
+                        </div>
+                    </div>
+                    <p class="wind-info">
+                        <i class="fas fa-location-arrow" id="windArrow"></i>
+                        <span id="windInfo">-- Wind</span>
+                        <span id="windSpeed">-- km/h</span>
+                    </p>
+                    <div class="aqi-scale">
+                        <span class="scale-label">Good</span>
+                        <div class="scale-bar">
+                            <div class="scale-indicator" id="aqiIndicator"></div>
+                        </div>
+                        <span class="scale-label">Hazardous</span>
+                    </div>
+                </div>
+
+                <!-- Tomorrow's Weather Card -->
+                <div class="card tomorrow-card">
+                    <div class="tomorrow-header">
+                        <button class="icon-btn" data-tooltip="Temperature">
+                            <i class="fas fa-thermometer-half"></i>
+                        </button>
+                        <button class="icon-btn" data-tooltip="Rain">
+                            <i class="fas fa-umbrella"></i>
+                        </button>
+                        <button class="icon-btn" data-tooltip="Wind">
+                            <i class="fas fa-wind"></i>
+                        </button>
+                    </div>
+                    <div class="tomorrow-content">
+                        <span class="tomorrow-label">Tomorrow</span>
+                        <h3 id="tomorrowLocation">Loading...</h3>
+                        <div class="tomorrow-temp" id="tomorrowTemp">--°C</div>
+                        <p class="tomorrow-desc" id="tomorrowDesc">Loading...</p>
+                        <div class="rain-illustration" id="tomorrowIcon">
+                            <i class="fas fa-cloud-sun"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Temperature Timeline -->
+            <section class="temperature-timeline">
+                <div class="timeline-header">
+                    <h3>How's the temperature today?</h3>
+                    <div class="timeline-controls">
+                        <button class="timeline-btn active" data-period="today">Today</button>
+                        <button class="timeline-btn" data-period="week">This Week</button>
+                    </div>
+                </div>
+                <div class="timeline-chart" id="timelineChart">
+                    <div class="time-point" data-time="morning">
+                        <div class="weather-icon small">
+                            <i class="fas fa-cloud"></i>
+                        </div>
+                        <div class="temp-value" id="tempMorning">--°</div>
+                        <span class="time-label">Morning</span>
+                    </div>
+                    <div class="time-point active" data-time="afternoon">
+                        <div class="weather-icon small">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                        <div class="temp-value" id="tempAfternoon">--°</div>
+                        <span class="time-label">Afternoon</span>
+                    </div>
+                    <div class="time-point" data-time="evening">
+                        <div class="weather-icon small">
+                            <i class="fas fa-cloud-sun"></i>
+                        </div>
+                        <div class="temp-value" id="tempEvening">--°</div>
+                        <span class="time-label">Evening</span>
+                    </div>
+                    <div class="time-point" data-time="night">
+                        <div class="weather-icon small">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <div class="temp-value" id="tempNight">--°</div>
+                        <span class="time-label">Night</span>
+                    </div>
+                    <canvas id="timelineCurve"></canvas>
+                </div>
+            </section>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside class="right-sidebar">
+            <!-- Sun Info -->
+            <div class="sun-info-card">
+                <h4>Sun Position</h4>
+                <div class="sun-arc">
+                    <canvas id="sunArc"></canvas>
+                    <div class="sun-times">
+                        <div class="sun-time">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>Sunset</span>
+                            <strong id="sunset">--:--</strong>
+                        </div>
+                        <div class="sun-time">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Sunrise</span>
+                            <strong id="sunrise">--:--</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UV Index -->
+            <div class="uv-card">
+                <div class="uv-icon">
+                    <i class="fas fa-sun"></i>
+                </div>
+                <div class="uv-info">
+                    <span id="uvIndex">-- UVI</span>
+                    <span class="uv-level" id="uvLevel">Moderate</span>
+                </div>
+                <p id="uvDescription">Moderate risk from UV rays</p>
+            </div>
+
+            <!-- Weather Prediction -->
+            <div class="prediction-card">
+                <div class="prediction-header">
+                    <h3>Weather Prediction</h3>
+                    <button class="refresh-btn small" id="refreshForecast">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div id="forecastContainer">
+                    <!-- Forecast items will be dynamically generated -->
+                </div>
+                <button class="next-5-days" id="viewMore">
+                    <i class="fas fa-calendar-alt"></i> Next 5 Days
+                </button>
+            </div>
+
+            <!-- Developer Card -->
+            <div class="developer-card">
+                <div class="developer-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="developer-info">
+                    <h4>Ankit Raj Maurya</h4>
+                    <p>Full Stack Developer</p>
+                    <div class="developer-links">
+                        <a href="https://github.com/ankitrajmaurya" target="_blank" data-tooltip="GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="mailto:ankit5242raj1@outlook.com" data-tooltip="Email">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                        <a href="https://ankitrajmaurya.github.io/portfolio2.O/" target="_blank" data-tooltip="Portfolio">
+                            <i class="fas fa-globe"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner">
+            <i class="fas fa-circle-notch fa-spin"></i>
+        </div>
+        <p>Loading weather data...</p>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-info-circle"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
