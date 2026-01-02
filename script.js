@@ -2,7 +2,7 @@
 // WEATHER APP by Ankit Raj Maurya
 // Full Stack Developer from Muzaffarpur, Bihar
 // Email: ankit5242raj1@outlook.com
-// Portfolio: https://ankitrajmaurya.github.io/portfolio2.O/
+// Portfolio: https://ankitrajmaurya.github.io/Portfolio/
 // ============================================
 
 // API Configuration with Working Keys
@@ -1278,5 +1278,5 @@ console.log('  ✓ Notification system');
 console.log('  ✓ Search history');
 console.log('  ✓ Auto-refresh');
 console.log('');
-console.log('🌐 Portfolio: https://ankitrajmaurya.github.io/portfolio2.O/');
+console.log('🌐 Portfolio: https://ankitrajmaurya.github.io/Portfolio/');
 console.log('📧 Email: ankit5242raj1@outlook.com');
