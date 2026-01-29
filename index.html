@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather App - Ankit Raj Maurya</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <div class="container">
         <!-- Sidebar -->
@@ -36,6 +39,10 @@
             <div class="developer-credit">
                 <small>Developed by</small>
                 <strong>Ankit Raj</strong>
+                <a href="https://www.linkedin.com/in/ankitrajmaurya" target="_blank" class="linkedin-link"
+                    data-tooltip="LinkedIn">
+                    <i class="fab fa-linkedin"></i>
+                </a>
             </div>
         </aside>
 
@@ -48,17 +55,12 @@
                     <h2 id="userName">Ankit Raj Maurya</h2>
                     <p class="subtitle">Full Stack Developer</p>
                 </div>
-                
+
                 <!-- Search Bar with Autocomplete -->
                 <div class="search-container">
                     <div class="search-bar">
                         <i class="fas fa-search"></i>
-                        <input 
-                            type="text" 
-                            id="searchInput" 
-                            placeholder="Search city..."
-                            autocomplete="off"
-                        >
+                        <input type="text" id="searchInput" placeholder="Search city..." autocomplete="off">
                         <button class="search-btn" id="searchBtn">
                             <i class="fas fa-paper-plane"></i>
                         </button>
@@ -298,6 +300,9 @@
                     <h4>Ankit Raj Maurya</h4>
                     <p>Full Stack Developer</p>
                     <div class="developer-links">
+                        <a href="https://www.linkedin.com/in/ankitrajmaurya" target="_blank" data-tooltip="LinkedIn">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
                         <a href="https://github.com/ankitrajmaurya" target="_blank" data-tooltip="GitHub">
                             <i class="fab fa-github"></i>
                         </a>
@@ -327,6 +332,154 @@
         <span id="toastMessage"></span>
     </div>
 
+    <!-- Notifications Panel -->
+    <div class="panel-overlay" id="notificationsPanel">
+        <div class="panel-container">
+            <div class="panel-header">
+                <h2><i class="fas fa-bell"></i> Weather Notifications</h2>
+                <button class="panel-close" onclick="closePanel('notificationsPanel')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="panel-content" id="notificationsContent">
+                <!-- Notifications will be populated here -->
+            </div>
+            <div class="panel-footer">
+                <button class="btn-secondary" onclick="clearAllNotifications()">
+                    <i class="fas fa-trash"></i> Clear All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Locations Panel -->
+    <div class="panel-overlay" id="locationsPanel">
+        <div class="panel-container">
+            <div class="panel-header">
+                <h2><i class="fas fa-map-marker-alt"></i> Saved Locations</h2>
+                <button class="panel-close" onclick="closePanel('locationsPanel')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="panel-content" id="locationsContent">
+                <!-- Saved locations will be populated here -->
+            </div>
+            <div class="panel-footer">
+                <button class="btn-primary" onclick="saveCurrentLocation()">
+                    <i class="fas fa-plus"></i> Save Current Location
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Panel -->
+    <div class="panel-overlay" id="historyPanel">
+        <div class="panel-container">
+            <div class="panel-header">
+                <h2><i class="fas fa-clipboard-list"></i> Search History</h2>
+                <button class="panel-close" onclick="closePanel('historyPanel')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="panel-content" id="historyContent">
+                <!-- History will be populated here -->
+            </div>
+            <div class="panel-footer">
+                <button class="btn-secondary" onclick="clearAllHistory()">
+                    <i class="fas fa-trash"></i> Clear History
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="panel-overlay" id="settingsPanel">
+        <div class="panel-container">
+            <div class="panel-header">
+                <h2><i class="fas fa-cog"></i> Settings</h2>
+                <button class="panel-close" onclick="closePanel('settingsPanel')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="panel-content" id="settingsContent">
+                <div class="settings-section">
+                    <h3>Temperature Unit</h3>
+                    <div class="setting-option">
+                        <label class="radio-label">
+                            <input type="radio" name="tempUnit" value="C" checked>
+                            <span>Celsius (°C)</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="tempUnit" value="F">
+                            <span>Fahrenheit (°F)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Theme</h3>
+                    <div class="setting-option">
+                        <label class="radio-label">
+                            <input type="radio" name="theme" value="light" checked>
+                            <span>Light Mode</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="theme" value="dark">
+                            <span>Dark Mode</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Auto Refresh</h3>
+                    <div class="setting-option">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="autoRefreshToggle" checked>
+                            <span class="toggle-switch"></span>
+                            <span>Automatically refresh weather every 10 minutes</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Notification Preferences</h3>
+                    <div class="setting-option">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="severeWeatherToggle" checked>
+                            <span class="toggle-switch"></span>
+                            <span>Severe weather alerts</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="uvAlertToggle" checked>
+                            <span class="toggle-switch"></span>
+                            <span>High UV index alerts</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="tempAlertToggle" checked>
+                            <span class="toggle-switch"></span>
+                            <span>Temperature extreme alerts</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>About</h3>
+                    <div class="about-info">
+                        <p><strong>Weather App</strong> by Ankit Raj Maurya</p>
+                        <p>Version 2.0</p>
+                        <p>Full Stack Developer from Muzaffarpur, Bihar</p>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button class="btn-primary" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
+
 </html>
