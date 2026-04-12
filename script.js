@@ -55,6 +55,15 @@ function initializeApp() {
     getUserLocation();
     initializeAnimations();
 
+    let layoutResizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(layoutResizeTimer);
+        layoutResizeTimer = setTimeout(() => {
+            drawTimelineCurve();
+            updateSunTimes();
+        }, 120);
+    });
+
     // Auto-refresh every 10 minutes
     setInterval(() => {
         if (!state.isLoading) {
