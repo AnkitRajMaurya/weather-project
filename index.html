@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#FF8C42">
     <meta name="color-scheme" content="light dark">
     <title>Weather App - Ankit Raj Maurya</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
@@ -321,8 +321,8 @@
         </aside>
     </div>
 
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
+    <!-- Loading Overlay (hidden until a fetch starts; avoids stuck spinner while geolocation waits) -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
         <div class="spinner">
             <i class="fas fa-circle-notch fa-spin"></i>
         </div>
@@ -482,7 +482,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="/script.js"></script>
 </body>
 
 </html>

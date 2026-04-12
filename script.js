@@ -1,15 +1,40 @@
 // ============================================
 // WEATHER APP by Ankit Raj Maurya
-// Full Stack Developer from Muzaffarpur, Bihar
-// Email: ankit5242raj1@outlook.com
-// Portfolio: https://ankitrajmaurya.github.io/Portfolio/
 // ============================================
+// Configure via .env (Vite exposes only variables prefixed with VITE_).
 
-// API Configuration with Working Keys
+function envFloat(key, fallback) {
+    const v = import.meta.env[key];
+    if (v === undefined || v === '') return fallback;
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : fallback;
+}
+
+function envInt(key, fallback) {
+    const v = import.meta.env[key];
+    if (v === undefined || v === '') return fallback;
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : fallback;
+}
+
 const CONFIG = {
-    OPENWEATHER_API_KEY: 'f33a484cf794d08d0148764789aaba32',
-    WEATHER_BASE_URL: 'https://api.openweathermap.org/data/2.5',
-    GEO_URL: 'https://api.openweathermap.org/geo/1.0',
+    OPENWEATHER_API_KEY: (import.meta.env.VITE_OPENWEATHER_API_KEY || '').trim(),
+    WEATHER_BASE_URL:
+        import.meta.env.VITE_WEATHER_BASE_URL || 'https://api.openweathermap.org/data/2.5',
+    GEO_URL: import.meta.env.VITE_GEO_URL || 'https://api.openweathermap.org/geo/1.0',
+};
+
+console.log('🔧 CONFIG object created:');
+console.log('   API_KEY:', CONFIG.OPENWEATHER_API_KEY ? '✅ ' + CONFIG.OPENWEATHER_API_KEY.substring(0, 8) + '...' : '❌ undefined');
+console.log('   WEATHER_BASE_URL:', CONFIG.WEATHER_BASE_URL);
+console.log('   GEO_URL:', CONFIG.GEO_URL);
+console.log('🔧 import.meta.env.VITE_OPENWEATHER_API_KEY:', import.meta.env.VITE_OPENWEATHER_API_KEY);
+console.log('🔧 All VITE_ vars:', Object.entries(import.meta.env).filter(([k]) => k.startsWith('VITE_')).map(([k, v]) => [k, v ? v.substring(0, 5) + '...' : v]));
+
+const APP_CONFIG = {
+    refreshIntervalMs: envInt('VITE_REFRESH_INTERVAL_MS', 600000),
+    searchHistoryLimit: envInt('VITE_SEARCH_HISTORY_LIMIT', 10),
+    savedLocationsLimit: envInt('VITE_SAVED_LOCATIONS_LIMIT', 10),
 };
 
 // State management
@@ -18,10 +43,10 @@ const state = {
     forecastData: null,
     airQualityData: null,
     isLoading: false,
-    currentLat: 26.1197,
-    currentLon: 85.3910,
-    currentCity: 'Muzaffarpur',
-    currentCountry: 'IN',
+    currentLat: envFloat('VITE_DEFAULT_LATITUDE', 26.1197),
+    currentLon: envFloat('VITE_DEFAULT_LONGITUDE', 85.3910),
+    currentCity: import.meta.env.VITE_DEFAULT_CITY || 'Muzaffarpur',
+    currentCountry: import.meta.env.VITE_DEFAULT_COUNTRY || 'IN',
     autocompleteTimeout: null,
     searchHistory: [],
     currentView: 'dashboard'
@@ -32,15 +57,23 @@ const state = {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🌤️ Weather App Initializing...');
-    console.log('👨‍💻 Developed by: Ankit Raj Maurya');
-    console.log('📍 Default Location: Muzaffarpur, Bihar');
-    console.log('📧 Contact: ankit5242raj1@outlook.com');
-
     initializeApp();
 });
 
 function initializeApp() {
+    console.log('🔍 initializeApp called');
+    console.log('📋 CONFIG:', CONFIG);
+    console.log('📋 import.meta.env keys:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
+    
+    if (!CONFIG.OPENWEATHER_API_KEY) {
+        const msg =
+            'Weather API key missing. Add VITE_OPENWEATHER_API_KEY to your .env file and restart the dev server.';
+        console.error(msg);
+        showToast(msg, 'error');
+        showLoading(false);
+        return;
+    }
+
     updateDateTime();
     setInterval(updateDateTime, 60000);
 
@@ -52,7 +85,11 @@ function initializeApp() {
     setupNotificationButton();
     loadSearchHistory();
     loadSettings(); // Load user settings from localStorage
+
+    // Load default location immediately so UI is not blocked by geolocation (slow / permission dialog).
+    fetchWeatherData(state.currentLat, state.currentLon, state.currentCity);
     getUserLocation();
+
     initializeAnimations();
 
     let layoutResizeTimer;
@@ -64,13 +101,11 @@ function initializeApp() {
         }, 120);
     });
 
-    // Auto-refresh every 10 minutes
     setInterval(() => {
         if (!state.isLoading) {
-            console.log('🔄 Auto-refreshing weather data...');
             fetchWeatherData(state.currentLat, state.currentLon, state.currentCity);
         }
-    }, 600000);
+    }, APP_CONFIG.refreshIntervalMs);
 }
 
 // ============================================
@@ -364,9 +399,11 @@ function saveCurrentLocation() {
         return;
     }
 
-    // Limit to 10 locations
-    if (savedLocations.length >= 10) {
-        showToast('Maximum 10 locations allowed. Remove one to add more.', 'warning');
+    if (savedLocations.length >= APP_CONFIG.savedLocationsLimit) {
+        showToast(
+            `Maximum ${APP_CONFIG.savedLocationsLimit} locations allowed. Remove one to add more.`,
+            'warning'
+        );
         return;
     }
 
@@ -546,39 +583,38 @@ document.addEventListener('click', (e) => {
 // ============================================
 
 function addToSearchHistory(city, country, lat, lon) {
-    // Check if already exists recently (within last 5 searches)
-    const recent = state.searchHistory.slice(-5);
-    const exists = recent.some(item =>
-        item.city === city && item.country === country
+    const historyItem = { city, country, lat, lon, timestamp: Date.now() };
+
+    state.searchHistory = state.searchHistory.filter(
+        item => !(item.city === city && item.country === country)
     );
 
-    if (!exists) {
-        state.searchHistory.push({
-            city,
-            country,
-            lat,
-            lon,
-            timestamp: new Date().toISOString()
-        });
+    state.searchHistory.unshift(historyItem);
+    state.searchHistory = state.searchHistory.slice(0, APP_CONFIG.searchHistoryLimit);
 
-        // Keep only last 50 searches
-        if (state.searchHistory.length > 50) {
-            state.searchHistory = state.searchHistory.slice(-50);
-        }
-
+    try {
         localStorage.setItem('searchHistory', JSON.stringify(state.searchHistory));
+    } catch (error) {
+        console.warn('Could not save search history:', error);
     }
 }
 
 function loadSearchHistory() {
-    const stored = localStorage.getItem('searchHistory');
-    if (stored) {
-        try {
-            state.searchHistory = JSON.parse(stored);
-        } catch (e) {
-            console.error('Error loading search history:', e);
-            state.searchHistory = [];
+    try {
+        let saved = localStorage.getItem('searchHistory');
+        if (!saved) {
+            saved = localStorage.getItem('weatherSearchHistory');
+            if (saved) {
+                localStorage.setItem('searchHistory', saved);
+                localStorage.removeItem('weatherSearchHistory');
+            }
         }
+        if (saved) {
+            state.searchHistory = JSON.parse(saved);
+        }
+    } catch (error) {
+        console.warn('Could not load search history:', error);
+        state.searchHistory = [];
     }
 }
 
@@ -951,34 +987,51 @@ async function searchCityAndFetchWeather(city) {
 // WEATHER DATA FETCHING
 // ============================================
 
+let weatherFetchSeq = 0;
+
 async function fetchWeatherData(lat, lon, city) {
+    console.log(`📡 fetchWeatherData called with: lat=${lat}, lon=${lon}, city=${city}`);
+    const seq = ++weatherFetchSeq;
     showLoading(true);
     state.isLoading = true;
 
-    console.log(`⏳ Fetching weather for ${city}...`);
-
     try {
-        const weatherResponse = await fetch(
-            `${CONFIG.WEATHER_BASE_URL}/weather?lat=${lat}&lon=${lon}&units=metric&appid=${CONFIG.OPENWEATHER_API_KEY}`
-        );
+        const weatherUrl = `${CONFIG.WEATHER_BASE_URL}/weather?lat=${lat}&lon=${lon}&units=metric&appid=${CONFIG.OPENWEATHER_API_KEY}`;
+        console.log(`🌐 Fetching weather from: ${weatherUrl}`);
+        
+        const weatherResponse = await fetch(weatherUrl);
 
+        console.log(`✅ Weather response status: ${weatherResponse.status}`);
+        
         if (!weatherResponse.ok) {
-            throw new Error(`Weather API error: ${weatherResponse.status}`);
+            const hint =
+                weatherResponse.status === 401
+                    ? ' Check VITE_OPENWEATHER_API_KEY in .env and restart npm run dev.'
+                    : '';
+            throw new Error(`Weather API HTTP ${weatherResponse.status}${hint}`);
         }
 
-        state.weatherData = await weatherResponse.json();
-        console.log('✅ Current weather loaded');
+        const weatherJson = await weatherResponse.json();
+        console.log('✅ Weather data received:', weatherJson);
+        
+        if (seq !== weatherFetchSeq) {
+            return;
+        }
+        state.weatherData = weatherJson;
 
         const forecastResponse = await fetch(
             `${CONFIG.WEATHER_BASE_URL}/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${CONFIG.OPENWEATHER_API_KEY}`
         );
 
         if (!forecastResponse.ok) {
-            throw new Error(`Forecast API error: ${forecastResponse.status}`);
+            throw new Error(`Forecast API HTTP ${forecastResponse.status}`);
         }
 
-        state.forecastData = await forecastResponse.json();
-        console.log('✅ Forecast loaded');
+        const forecastJson = await forecastResponse.json();
+        if (seq !== weatherFetchSeq) {
+            return;
+        }
+        state.forecastData = forecastJson;
 
         try {
             const airQualityResponse = await fetch(
@@ -986,23 +1039,36 @@ async function fetchWeatherData(lat, lon, city) {
             );
 
             if (airQualityResponse.ok) {
-                state.airQualityData = await airQualityResponse.json();
-                console.log('✅ Air quality loaded');
+                const aqJson = await airQualityResponse.json();
+                if (seq !== weatherFetchSeq) {
+                    return;
+                }
+                state.airQualityData = aqJson;
             }
-        } catch (error) {
-            console.warn('⚠️ Air quality unavailable');
-            state.airQualityData = null;
+        } catch {
+            if (seq === weatherFetchSeq) {
+                state.airQualityData = null;
+            }
+        }
+
+        if (seq !== weatherFetchSeq) {
+            return;
         }
 
         updateAllUI();
-        console.log('✅ All data loaded!');
-
     } catch (error) {
         console.error('❌ Error fetching weather:', error);
-        showToast('❌ Failed to load weather data', 'error');
+        console.error('Stack:', error.stack);
+        if (seq === weatherFetchSeq) {
+            const msg =
+                error instanceof Error ? error.message : 'Failed to load weather data';
+            showToast(`❌ ${msg}`, 'error');
+        }
     } finally {
-        showLoading(false);
-        state.isLoading = false;
+        if (seq === weatherFetchSeq) {
+            showLoading(false);
+            state.isLoading = false;
+        }
     }
 }
 
@@ -1011,11 +1077,15 @@ async function fetchWeatherData(lat, lon, city) {
 // ============================================
 
 function updateAllUI() {
+    console.log('🎨 updateAllUI called');
+    console.log('📊 state.weatherData:', state.weatherData);
+    
     if (!state.weatherData) {
         console.error('No weather data');
         return;
     }
 
+    console.log('✅ Updating UI with weather data...');
     updateCurrentWeather();
     updateAirQuality();
     updateForecast();
@@ -1491,39 +1561,6 @@ function drawSunArc(sunrise, sunset) {
 }
 
 // ============================================
-// SEARCH HISTORY
-// ============================================
-
-function addToSearchHistory(city, country, lat, lon) {
-    const historyItem = { city, country, lat, lon, timestamp: Date.now() };
-
-    state.searchHistory = state.searchHistory.filter(
-        item => !(item.city === city && item.country === country)
-    );
-
-    state.searchHistory.unshift(historyItem);
-    state.searchHistory = state.searchHistory.slice(0, 10);
-
-    try {
-        localStorage.setItem('weatherSearchHistory', JSON.stringify(state.searchHistory));
-    } catch (error) {
-        console.warn('Could not save search history:', error);
-    }
-}
-
-function loadSearchHistory() {
-    try {
-        const saved = localStorage.getItem('weatherSearchHistory');
-        if (saved) {
-            state.searchHistory = JSON.parse(saved);
-        }
-    } catch (error) {
-        console.warn('Could not load search history:', error);
-        state.searchHistory = [];
-    }
-}
-
-// ============================================
 // EXTENDED FORECAST
 // ============================================
 
@@ -1626,20 +1663,11 @@ window.addEventListener('unhandledrejection', (e) => {
 // APP READY
 // ============================================
 
-console.log('✅ Weather App Ready!');
-console.log('📊 ALL Features Working:');
-console.log('  ✓ Real-time weather data');
-console.log('  ✓ 5-day forecast');
-console.log('  ✓ Air quality monitoring');
-console.log('  ✓ City autocomplete');
-console.log('  ✓ Geolocation support');
-console.log('  ✓ Navigation buttons');
-console.log('  ✓ Timeline controls');
-console.log('  ✓ Icon buttons');
-console.log('  ✓ Developer links');
-console.log('  ✓ Notification system');
-console.log('  ✓ Search history');
-console.log('  ✓ Auto-refresh');
-console.log('');
-console.log('🌐 Portfolio: https://ankitrajmaurya.github.io/Portfolio/');
-console.log('📧 Email: ankit5242raj1@outlook.com');
+console.log('Weather app ready.');
+
+// Inline onclick in index.html needs globals (ES modules are not in window scope)
+window.closePanel = closePanel;
+window.clearAllNotifications = clearAllNotifications;
+window.saveCurrentLocation = saveCurrentLocation;
+window.clearAllHistory = clearAllHistory;
+window.saveSettings = saveSettings;
